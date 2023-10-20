@@ -6,6 +6,7 @@
 #include <pthread.h>
 
 #define MAX_THREADS 256
+#define MIN(x, y)   (((x) < (y)) ? (x) : (y))
 
 struct thread_arg {
   const float *A;
@@ -44,6 +45,19 @@ static void *matmul_thread(void *arg) {
   int num_threads = (*input).num_threads;
   int rank = (*input).rank;
 
+  int tmp = (M + num_threads - 1) / num_threads;
+  int M_start = tmp * rank;
+  int M_end = MIN(tmp * (rank + 1), M);
+
+  for (int i = M_start; i < M_end; i++) {
+    for (int k = 0; k < K; k++) {
+      float a = A[i * K + k];
+      for (int j = 0; j < N; j++) {
+        C[i * N + j] += a * B[k * N + j];
+      }
+    }
+  }
+  
   return NULL;
 }
 
@@ -52,7 +66,7 @@ void matmul(const float *A, const float *B, float *C, int M, int N, int K,
             int num_threads) {
 
   // Naive single-threaded matmul implementation
-  matmul_singlethread(A, B, C, M, N, K);
+  // matmul_singlethread(A, B, C, M, N, K);
 
   /*
    * TODO: Complete multi-threaded matrix multiplication and remove the matmul_singlethread call
