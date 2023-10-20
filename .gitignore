@@ -60,3 +60,4 @@ dkms.conf
 .vscode/
 matmul/main
 report/
+bin/
